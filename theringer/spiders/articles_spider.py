@@ -70,23 +70,25 @@ class ArticlesSpider(scrapy.Spider):
 
     @staticmethod
     def get_title(response):
-        title = response.css('meta[name="sailthru.title"]')
-        return title.attrib['content'] if title else ''
+        return response.css('head').css('title::text').get()
 
     @staticmethod
     def get_description(response):
-        description = response.css('meta[name="sailthru.description"]')
+        description = response.css('meta[name="description"]')
         return description.attrib['content'] if description else ''
 
     @staticmethod
     def get_image(response):
-        image = response.css('meta[name="sailthru.image.full"]')
+        image = response.css('meta[property="og:image"]')
         return image.attrib['content'] if image else ''
 
     @staticmethod
     def get_tags(response):
-        tags = response.css('meta[name="sailthru.tags"]')
-        return tags.attrib['content'] if tags else ''
+        ld_json = response.css(
+            'script[type="application/ld+json"]::text',
+        ).get()
+        ld = json.loads(ld_json)
+        return ','.join(ld['keywords']) if ld else ''
 
     @staticmethod
     def get_groups(response):
@@ -99,7 +101,7 @@ class ArticlesSpider(scrapy.Spider):
 
     @staticmethod
     def get_date(response):
-        date = response.css('meta[name="sailthru.date"]')
+        date = response.css('meta[property="article:published_time"]')
         return date.attrib['content'] if date else ''
 
     @staticmethod
